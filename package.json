@@ -1,0 +1,12 @@
+{
+  "name": "portfolio-devops",
+  "private": true,
+  "scripts": {
+    "lint": "htmlhint \"**/*.html\" --ignore \"node_modules/**,_site/**\"",
+    "check:links": "node scripts/check-links.mjs"
+  },
+  "devDependencies": {
+    "htmlhint": "1.9.2",
+    "parse5": "7.3.0"
+  }
+}

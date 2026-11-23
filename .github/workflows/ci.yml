@@ -1,0 +1,37 @@
+name: Validação de PR
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Validação (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - name: Baixar código
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verificar index.html na raiz
+        run: test -f index.html
+      - name: Verificar tamanho e conteúdo
+        run: bash scripts/check-files.sh
+      - name: Preparar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Instalar dependências
+        run: npm ci
+      - name: Validar HTML
+        run: npm run lint
+      - name: Verificar links e imagens
+        run: npm run check:links

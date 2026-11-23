@@ -1,0 +1,62 @@
+name: Publicação no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Preparar site
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: test -f index.html
+      - run: |
+          mkdir _site
+          cp index.html style.css _site/
+          cp -r images _site/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+  deploy:
+    name: Publicar site
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar no Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+  notify:
+    name: Avisar sobre falha
+    needs: [package, deploy]
+    if: ${{ failure() }}
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Enviar alerta ao Discord
+        run: |
+          if [[ -z "$DISCORD_WEBHOOK_URL" ]]; then
+            echo "::warning::Configure o secret DISCORD_WEBHOOK_URL para receber alertas."
+            exit 0
+          fi
+          jq -n --arg url "$RUN_URL" '{content: ("Falha na publicação do portfólio: " + $url)}' |
+            curl --fail --silent --show-error --max-time 20 \
+              -H 'Content-Type: application/json' -d @- "$DISCORD_WEBHOOK_URL"
