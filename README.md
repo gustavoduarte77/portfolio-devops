@@ -5,6 +5,8 @@
 
 Portfólio estático e esteira de integração e entrega contínua para GitHub Pages.
 
+[Abrir o portfólio publicado](https://gustavoduarte77.github.io/portfolio-devops/)
+
 ## Rodar localmente
 
 Abra `index.html` no navegador. Com Node.js 22 ou 24, execute:
